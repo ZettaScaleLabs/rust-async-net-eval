@@ -1,5 +1,5 @@
 [package]
-name = "async-pong-udp"
+name = "std-pong-udp"
 version = "0.1.0"
 authors = ["Luca Cominardi <luca.cominardi@gmail.com>", "Gabriele Baldoni <gabriele.baldoni@gmail.com>"]
 edition = "2018"
