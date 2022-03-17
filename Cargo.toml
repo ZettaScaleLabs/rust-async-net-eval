@@ -1,0 +1,45 @@
+#
+# Copyright (c) 2017, 2022  ZettaScale Technologies Inc.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+# which is available at https://www.apache.org/licenses/LICENSE-2.0.
+#
+# SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+#
+# Contributors:
+#   ADLINK zenoh team, <zenoh@adlink-labs.tech>
+#
+[workspace]
+
+members = [
+  "async-ping-tcp",
+  "async-pong-tcp",
+  "async-ping-udp",
+  "async-pong-udp",
+  "smol-ping-tcp",
+  "smol-pong-tcp",
+  "smol-ping-udp",
+  "smol-pong-udp",
+  "std-ping-tcp",
+  "std-pong-tcp",
+  "std-ping-udp",
+  "std-pong-udp",
+  "tokio-ping-tcp",
+  "tokio-pong-tcp",
+  "tokio-ping-udp",
+  "tokio-pong-udp",
+]
+
+[profile.dev]
+debug=true
+opt-level = 0
+
+
+[profile.release]
+debug=true
+lto="fat"
+codegen-units=1
+opt-level=3
+panic="abort"
