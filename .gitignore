@@ -1,0 +1,7 @@
+.idea
+_build
+target
+*.lock
+*~
+*.dat
+.DS_Store
