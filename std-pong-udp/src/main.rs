@@ -1,11 +1,12 @@
-use std::sync::Arc;
-use std::net::UdpSocket;
 use std::env;
 use std::net::SocketAddr;
+use std::net::UdpSocket;
+use std::sync::Arc;
 
-
-
-fn read_exact(socket: &Arc<UdpSocket>, buffer: &mut [u8]) -> Result<SocketAddr, Box<dyn std::error::Error>> {
+fn read_exact(
+    socket: &Arc<UdpSocket>,
+    buffer: &mut [u8],
+) -> Result<SocketAddr, Box<dyn std::error::Error>> {
     let mut read: usize = 0;
     let mut g_addr = "127.0.0.1:8080".parse().unwrap();
     while read < buffer.len() {
@@ -18,22 +19,25 @@ fn read_exact(socket: &Arc<UdpSocket>, buffer: &mut [u8]) -> Result<SocketAddr, 
 
 fn run(addr: SocketAddr, size: usize) -> Result<(), Box<dyn std::error::Error>> {
     let socket = Arc::new(UdpSocket::bind(addr)?);
-    let mut buf = vec![0u8;  size];
+    let mut buf = vec![0u8; size];
 
     loop {
         let addr = read_exact(&socket, &mut buf)?;
         socket.send_to(&buf, addr)?;
     }
-
 }
 
 fn main() {
-    let addr: SocketAddr = env::args().nth(1).unwrap().parse()
-                    .expect("First argument must be a valid socket address");
-    let size: usize = env::args().nth(2).unwrap().parse()
-                    .expect("Second argument must be the buffer size");
-
+    let addr: SocketAddr = env::args()
+        .nth(1)
+        .unwrap()
+        .parse()
+        .expect("First argument must be a valid socket address");
+    let size: usize = env::args()
+        .nth(2)
+        .unwrap()
+        .parse()
+        .expect("Second argument must be the buffer size");
 
     run(addr, size).unwrap();
-
 }

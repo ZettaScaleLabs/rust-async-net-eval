@@ -1,13 +1,13 @@
-use std::sync::Arc;
+use clap::Parser;
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::io::AsyncWriteExt;
 use tokio::net::UdpSocket;
+use tokio::runtime::Runtime;
 use tokio::sync::Mutex;
 use tokio::time;
-use tokio::runtime::Runtime;
-use clap::Parser;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -23,7 +23,10 @@ struct Args {
     csv: bool,
 }
 
-async fn read_exact(socket: &Arc<UdpSocket>, buffer: &mut [u8]) -> Result<SocketAddr, Box<dyn std::error::Error>> {
+async fn read_exact(
+    socket: &Arc<UdpSocket>,
+    buffer: &mut [u8],
+) -> Result<SocketAddr, Box<dyn std::error::Error>> {
     let mut read: usize = 0;
     let mut g_addr = "127.0.0.1:8080".parse().unwrap();
     while read < buffer.len() {
@@ -34,13 +37,13 @@ async fn read_exact(socket: &Arc<UdpSocket>, buffer: &mut [u8]) -> Result<Socket
     Ok(g_addr)
 }
 
-
 async fn run_wait(
     address: SocketAddr,
     remote: SocketAddr,
     size: usize,
     interval: f64,
     csv: bool,
+    tasks: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let socket = Arc::new(UdpSocket::bind(address).await?);
     socket.connect(remote).await?;
@@ -58,17 +61,17 @@ async fn run_wait(
         let elapsed = now.elapsed();
 
         if csv {
-            // framework, transport, test, count, payload, value, unit
+            // framework, transport, test, count, rate, payload, tasks, value, unit
             println!(
-                "tokio,udp,rtt,{},{},{},ns",count, payload.len(), elapsed.as_micros()
+                "tokio,udp,rtt,{},{},{},{},{},ns",
+                count,
+                interval,
+                payload.len(),
+                tasks,
+                elapsed.as_nanos()
             );
         } else {
-            println!(
-                "{} bytes: seq={} time={:?}",
-                payload.len(),
-                count,
-                elapsed
-            );
+            println!("{} bytes: seq={} time={:?}", payload.len(), count, elapsed);
         }
 
         tokio::io::stdout().flush().await.unwrap();
@@ -84,6 +87,7 @@ async fn run(
     size: usize,
     interval: f64,
     csv: bool,
+    tasks: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let socket = Arc::new(UdpSocket::bind(address).await?);
     socket.connect(remote).await?;
@@ -102,9 +106,14 @@ async fn run(
             let instant = c_pending.lock().await.remove(&count).unwrap();
 
             if csv {
-                // framework, transport, test, count, payload, value, unit
+                // framework, transport, test, count, rate, payload, tasks, value, unit
                 println!(
-                    "tokio,udp,rtt,{},{},{},ns",count, payload.len(), instant.elapsed().as_nanos()
+                    "tokio,udp,rtt,{},{},{},{},{},ns",
+                count,
+                interval,
+                payload.len(),
+                tasks,
+                instant.elapsed().as_nanos()
                 );
             } else {
                 println!(
@@ -130,18 +139,16 @@ async fn run(
         time::sleep(Duration::from_secs_f64(interval)).await;
         count = count.wrapping_add(1);
     }
-
 }
 
 fn main() {
     let args = Args::parse();
 
-    let rt  = Runtime::new().unwrap();
+    let rt = Runtime::new().unwrap();
     rt.block_on(async {
-
         for _ in 0..args.spawn {
             tokio::spawn(async move {
-                let mut x : usize = 1;
+                let mut x: usize = 1;
                 loop {
                     x = x.wrapping_mul(2);
                     time::sleep(Duration::from_millis(1)).await;
@@ -150,8 +157,26 @@ fn main() {
         }
 
         if !args.wait {
-            run(args.address, args.remote, args.size, args.interval, args.csv).await.unwrap();
+            run(
+                args.address,
+                args.remote,
+                args.size,
+                args.interval,
+                args.csv,
+                args.spawn,
+            )
+            .await
+            .unwrap();
         }
-        run_wait(args.address, args.remote, args.size, args.interval, args.csv).await.unwrap();
+        run_wait(
+            args.address,
+            args.remote,
+            args.size,
+            args.interval,
+            args.csv,
+            args.spawn,
+        )
+        .await
+        .unwrap();
     });
 }

@@ -1,10 +1,10 @@
-use smol::net::UdpSocket;
+use clap::Parser;
 use smol::lock::Mutex;
+use smol::net::UdpSocket;
 use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::time::{Duration, Instant};
-use clap::Parser;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -20,8 +20,10 @@ struct Args {
     csv: bool,
 }
 
-
-async fn read_exact(socket: &Arc<UdpSocket>, buffer: &mut [u8]) -> Result<(), Box<dyn std::error::Error>> {
+async fn read_exact(
+    socket: &Arc<UdpSocket>,
+    buffer: &mut [u8],
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut read: usize = 0;
     while read < buffer.len() {
         let n = socket.recv(&mut buffer[read..]).await?;
@@ -36,6 +38,7 @@ async fn run_wait(
     size: usize,
     interval: f64,
     csv: bool,
+    tasks: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let socket = Arc::new(UdpSocket::bind(address).await?);
     socket.connect(remote).await?;
@@ -53,20 +56,20 @@ async fn run_wait(
 
         let elapsed = now.elapsed();
         if csv {
-            // framework, transport, test, count, payload, value, unit
+            // framework, transport, test, count, rate, payload, tasks, value, unit
             println!(
-                "smol,udp,rtt,{},{},{},ns",count, payload.len(), elapsed.as_nanos()
+                "smol,udp,rtt,{},{},{},{},{},ns",
+                count,
+                interval,
+                payload.len(),
+                tasks,
+                elapsed.as_nanos()
             );
         } else {
-            println!(
-                "{} bytes: seq={} time={:?}",
-                payload.len(),
-                count,
-                elapsed
-            );
+            println!("{} bytes: seq={} time={:?}", payload.len(), count, elapsed);
         }
 
-        smol::unblock( move || std::thread::sleep(Duration::from_secs_f64(interval))).await;
+        smol::unblock(move || std::thread::sleep(Duration::from_secs_f64(interval))).await;
         count = count.wrapping_add(1);
     }
 }
@@ -77,6 +80,7 @@ async fn run(
     size: usize,
     interval: f64,
     csv: bool,
+    tasks: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let socket = Arc::new(UdpSocket::bind(address).await?);
     socket.connect(remote).await?;
@@ -95,9 +99,14 @@ async fn run(
 
             let instant = c_pending.lock().await.remove(&count).unwrap();
             if csv {
-                // framework, transport, test, count, payload, value, unit
+                // framework, transport, test, count, rate, payload, tasks, value, unit
                 println!(
-                    "smol,udp,rtt,{},{},{},ns",count, payload.len(), instant.elapsed().as_nanos()
+                    "smol,udp,rtt,{},{},{},{},{},ns",
+                count,
+                interval,
+                payload.len(),
+                tasks,
+                instant.elapsed().as_nanos()
                 );
             } else {
                 println!(
@@ -108,7 +117,8 @@ async fn run(
                 );
             }
         }
-    }).detach();
+    })
+    .detach();
 
     //Perform RUN tests
     let mut count: u64 = 0;
@@ -120,33 +130,47 @@ async fn run(
         pending.lock().await.insert(count, Instant::now());
         socket.send(&payload).await.unwrap();
 
-        smol::unblock( move || std::thread::sleep(Duration::from_secs_f64(interval))).await;
+        smol::unblock(move || std::thread::sleep(Duration::from_secs_f64(interval))).await;
         count = count.wrapping_add(1);
     }
 }
-
-
-
-
 
 fn main() {
     let args = Args::parse();
 
     smol::block_on(async {
-
         for _ in 0..args.spawn {
             smol::spawn(async move {
-                let mut x : usize = 1;
+                let mut x: usize = 1;
                 loop {
                     x = x.wrapping_mul(2);
-                    smol::unblock( move || std::thread::sleep(Duration::from_millis(1))).await;
+                    smol::unblock(move || std::thread::sleep(Duration::from_millis(1))).await;
                 }
-            }).detach();
+            })
+            .detach();
         }
 
         if !args.wait {
-            run(args.address, args.remote, args.size, args.interval, args.csv).await.unwrap();
+            run(
+                args.address,
+                args.remote,
+                args.size,
+                args.interval,
+                args.csv,
+                args.spawn,
+            )
+            .await
+            .unwrap();
         }
-        run_wait(args.address, args.remote, args.size, args.interval, args.csv).await.unwrap();
+        run_wait(
+            args.address,
+            args.remote,
+            args.size,
+            args.interval,
+            args.csv,
+            args.spawn,
+        )
+        .await
+        .unwrap();
     });
 }

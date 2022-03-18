@@ -1,11 +1,11 @@
+use clap::Parser;
+use std::collections::HashMap;
+use std::io::{Read, Write};
+use std::net::SocketAddr;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::collections::HashMap;
-use std::net::SocketAddr;
 use std::time::{Duration, Instant};
-use std::io::{Read, Write};
-use clap::Parser;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -25,6 +25,7 @@ fn run_wait(
     size: usize,
     interval: f64,
     csv: bool,
+    tasks: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut stream = TcpStream::connect(address)?;
     stream.set_nodelay(true)?;
@@ -41,17 +42,17 @@ fn run_wait(
 
         let elapsed = now.elapsed();
         if csv {
-            // framework, transport, test, count, payload, value, unit
+            // framework, transport, test, count, rate, payload, tasks, value, unit
             println!(
-                "async-std,tcp,rtt,{},{},{},ns",count, payload.len(), elapsed.as_nanos()
+                "std,tcp,rtt,{},{},{},{},{},ns",
+                count,
+                interval,
+                payload.len(),
+                tasks,
+                elapsed.as_nanos()
             );
         } else {
-            println!(
-                "{} bytes: seq={} time={:?}",
-                payload.len(),
-                count,
-                elapsed
-            );
+            println!("{} bytes: seq={} time={:?}", payload.len(), count, elapsed);
         }
         thread::sleep(Duration::from_secs_f64(interval));
         count = count.wrapping_add(1);
@@ -63,6 +64,7 @@ fn run(
     size: usize,
     interval: f64,
     csv: bool,
+    tasks: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut stream = TcpStream::connect(address)?;
     stream.set_nodelay(true)?;
@@ -80,9 +82,14 @@ fn run(
 
             let instant = c_pending.lock().unwrap().remove(&count).unwrap();
             if csv {
-                // framework, transport, test, count, payload, value, unit
+                // framework, transport, test, count, rate, payload, tasks, value, unit
                 println!(
-                    "async-std,tcp,rtt,{},{},{},ns",count, payload.len(), instant.elapsed().as_nanos()
+                    "std,tcp,rtt,{},{},{},{},{},ns",
+                count,
+                interval,
+                payload.len(),
+                tasks,
+                instant.elapsed().as_nanos()
                 );
             } else {
                 println!(
@@ -115,7 +122,7 @@ fn main() {
 
     for _ in 0..args.spawn {
         thread::spawn(move || {
-            let mut x : usize = 1;
+            let mut x: usize = 1;
             loop {
                 x = x.wrapping_mul(2);
                 thread::sleep(Duration::from_millis(1));
@@ -124,7 +131,7 @@ fn main() {
     }
 
     if !args.wait {
-        run(args.address, args.size, args.interval, args.csv).unwrap();
+        run(args.address, args.size, args.interval, args.csv, args.spawn).unwrap();
     }
-    run_wait(args.address, args.size, args.interval, args.csv).unwrap();
+    run_wait(args.address, args.size, args.interval, args.csv, args.spawn).unwrap();
 }
