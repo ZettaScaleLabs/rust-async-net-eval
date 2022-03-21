@@ -15,6 +15,7 @@ usage() { printf "Usage: $0 \n\t
    -a async_std\n\t
    -t tokio\n\t
    -s smol\n\t
+   -P ICMP ping\n\t
    -h help\n" 1>&2; exit 1; }
 
 
@@ -69,6 +70,7 @@ NICE="${NICE:--10}"
 LOCAL="${LOCAL:-127.0.0.1:9009}"
 REMOTE="${REMOTE:-127.0.0.1:9999}"
 
+ICMP_REMOTE="${ICMP_REMOTE:-127.0.0.1}"
 
 
 mkdir -p $OUT_DIR
@@ -84,7 +86,7 @@ TORUN=1
 plog "[ INIT ] Duration will be $DURATION seconds"
 plog "[ INIT ] Sending a message each $INTERVAL"
 plog "[ INIT ] Message size $SIZE bytes"
-while getopts "iIoOsSath" arg; do
+while getopts "iIoOsSathP" arg; do
    case ${arg} in
    h)
       usage
@@ -243,6 +245,12 @@ while getopts "iIoOsSath" arg; do
          ;;
       esac
       ;;
+   P)
+      plog "[ RUN ] ICMP ping"
+      LOG_FILE="$OUT_DIR/icmp-ping-$TS-$TASKS-$SIZE-$INTERVAL.csv"
+      echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
+      sudo timeout $DURATION nice $NICE taskset -c $CPUS ping $ICMP_REMOTE -i $INTERVAL | awk -v intv=$INTERVAL 'BEGIN {FS="[=]|[ ]"} NR>=2 {printf("ping,icmp,rtt,%d,%d,64,0,%s,%s\n",$6,intv,$10,$11)}' >> $LOG_FILE 2> /dev/null
+      plog "[ DONE ] ICMP ping"
    *)
       usage
       ;;
@@ -250,3 +258,4 @@ while getopts "iIoOsSath" arg; do
 done
 ``
 plog "Bye!"
+

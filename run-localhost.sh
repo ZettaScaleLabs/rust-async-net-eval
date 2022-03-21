@@ -11,6 +11,7 @@ usage() { printf "Usage: $0 \n\t
    -S std\n\t
    -s smol\n\t
    -t tokio\n\t
+   -P ping
    -h help\n" 1>&2; exit 1; }
 
 # trap ctrl-c and call ctrl_c()
@@ -89,10 +90,11 @@ TCP_PING_REMOTE="127.0.0.1:9009"
 TCP_PING_LOCAL="127.0.0.1:9009"
 UDP_PING_REMOTE="127.0.0.1:9009"
 UDP_PING_LOCAL="127.0.0.1:9999"
+ICMP_REMOTE="127.0.0.1"
 
 
 
-while getopts "asSth" arg; do
+while getopts "asSthP" arg; do
    case ${arg} in
    h)
       usage
@@ -287,7 +289,23 @@ while getopts "asSth" arg; do
 
       plog "[ END ] tokio latency test"
       ;;
+   P)
+      plog "[ START ] ping latency test"
 
+      #icmp ping
+      for i in "${INTERVALS[@]}"
+      do
+
+         plog "[ START ] ping with interval $i and tasks $t"
+         DURATION=$DURATION CPUS=1 NICE=$NICE ICMP_REMOTE=$ICMP_REMOTE SIZE=$SIZE INTERVAL=$i  ./run-single-process.sh -P
+
+         plog "[ DONE ] ping with interval $i and tasks $t"
+         sleep 2
+
+         cleanup
+      done
+      plog "[ END ] ping latency test"
+      ;;
    *)
       usage
       ;;
