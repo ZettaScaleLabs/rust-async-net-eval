@@ -23,6 +23,7 @@ palette = {
     'smol': 'tab:green',
     'async-std': 'tab:red',
     'tokio': 'tab:purple',
+    'ping' : 'tab:grey',
 }
 
 
@@ -294,7 +295,7 @@ def main():
     parser = argparse.ArgumentParser(description='Parse zenoh flow performance results')
     parser.add_argument('-k','--kind', help='Kind of the tests', required=False, choices=['rtt', 'throughput'], default='rtt')
     parser.add_argument('-d','--data', help='Logs directory', required=True, type=str)
-    parser.add_argument('-p','--transport', help='udp or tcp', choices=['udp', 'tcp'], required=False)
+    parser.add_argument('-p','--transport', help='udp, tcp or icmp', choices=['udp', 'tcp', 'icmp'], required=False)
     parser.add_argument('-t','--type', help='Plot type', choices=['stat', 'time', 'ecdf', 'pdf'], default='stat', required=False)
     parser.add_argument('-s','--scale', help='Plot scale', choices=['log', 'lin'], default='log', required=False)
     parser.add_argument('-r','--rate', help='Filter for this rate', required=False, type=float)
