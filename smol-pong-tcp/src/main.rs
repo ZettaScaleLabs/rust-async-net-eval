@@ -14,7 +14,7 @@ async fn run(addr: SocketAddr, size: usize) -> Result<(), Box<dyn std::error::Er
             let mut buf = vec![0u8; size];
             loop {
                 stream.read_exact(&mut buf).await.unwrap();
-                stream.write_all(&mut buf).await.unwrap();
+                stream.write_all(&buf).await.unwrap();
             }
         })
         .detach();

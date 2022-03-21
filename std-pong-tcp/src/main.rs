@@ -6,16 +6,16 @@ use std::thread;
 
 fn run(addr: SocketAddr, size: usize) -> Result<(), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(addr)?;
-    let mut incoming = listener.incoming();
+    let incoming = listener.incoming();
 
-    while let Some(stream) = incoming.next() {
+    for stream in incoming {
         let mut stream = stream.unwrap();
         stream.set_nodelay(true)?;
         thread::spawn(move || {
             let mut buf = vec![0u8; size];
             loop {
                 stream.read_exact(&mut buf).unwrap();
-                stream.write_all(&mut buf).unwrap();
+                stream.write_all(&buf).unwrap();
             }
         });
     }
