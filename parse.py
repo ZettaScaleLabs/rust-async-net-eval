@@ -28,9 +28,15 @@ palette = {
 
 
 # styles = {
-#     'tcp': (0,'-'),
-#     'udp': (0,'--'),
+#     'tcp': '-',
+#     'udp': '-.',
+#     'icmp': ':',
 # }
+styles = {
+    'tcp': (0,0),
+    'udp': (1,1),
+    'icmp': (2,3),
+}
 
 
 
@@ -164,7 +170,6 @@ def prepare(log_dir, kind):
 
     log['framework'] = log['framework'].astype(str)
 
-
     log = log.reset_index()
     return log
 
@@ -242,7 +247,7 @@ def rtt_stat_plot(log, scale, outfile):
 
     g = sns.lineplot(data=log, x='label', y='value', palette=palette,
                 ci=95, err_style='band', hue='framework',
-                estimator=np.median, style='transport')
+                estimator=np.median, style='transport', dashes=styles)
 
     if scale == 'log':
         g.set_yscale('log')
@@ -269,7 +274,7 @@ def throughput_stat_plot(log, scale, outfile):
 
     g = sns.lineplot(data=log, x='label', y='value', palette=palette,
                 ci=95, err_style='band', hue='framework',
-                estimator=np.median, style='transport')
+                estimator=np.median, style='transport', dashes=styles)
 
     if scale == 'log':
         g.set_yscale('log')

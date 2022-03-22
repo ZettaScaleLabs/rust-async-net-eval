@@ -249,13 +249,14 @@ while getopts "iIoOsSathP" arg; do
       plog "[ RUN ] ICMP ping"
       LOG_FILE="$OUT_DIR/icmp-ping-$TS-$TASKS-$SIZE-$INTERVAL.csv"
       echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
-      sudo timeout $DURATION nice $NICE taskset -c $CPUS ping $ICMP_REMOTE -i $INTERVAL | awk -v intv=$INTERVAL 'BEGIN {FS="[=]|[ ]"} NR>=2 {printf("ping,icmp,rtt,%d,%d,64,0,%s,%s\n",$6,intv,$10,$11)}' >> $LOG_FILE 2> /dev/null
+      sudo timeout $DURATION nice $NICE taskset -c $CPUS ping $ICMP_REMOTE -i $INTERVAL | awk -v intv=$INTERVAL 'BEGIN {FS="[=]|[ ]"} NR>=2 {printf("ping,icmp,rtt,%d,%f,64,0,%s,%s\n",$6,intv,$10,$11)}' >> $LOG_FILE 2> /dev/null
       plog "[ DONE ] ICMP ping"
+      ;;
    *)
       usage
       ;;
    esac
 done
-``
+
 plog "Bye!"
 
