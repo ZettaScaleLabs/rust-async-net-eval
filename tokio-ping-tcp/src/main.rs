@@ -48,7 +48,7 @@ async fn run_wait(
         if csv {
             // framework, transport, test, count, rate, payload, tasks, value, unit
             println!(
-                "async-std,tcp,rtt,{},{},{},{},{},ns",
+                "tokio,tcp,rtt,{},{},{},{},{},ns",
                 count,
                 interval,
                 payload.len(),
@@ -94,7 +94,7 @@ async fn run(
             if csv {
                 // framework, transport, test, count, rate, payload, tasks, value, unit
                 println!(
-                    "async-std,tcp,rtt,{},{},{},{},{},ns",
+                    "tokio,tcp,rtt,{},{},{},{},{},ns",
                 count,
                 interval,
                 payload.len(),
