@@ -24,14 +24,9 @@ palette = {
     'async-std': 'tab:red',
     'tokio': 'tab:purple',
     'ping' : 'tab:grey',
+    'glommio' : 'tab:yellow'
 }
 
-
-# styles = {
-#     'tcp': '-',
-#     'udp': '-.',
-#     'icmp': ':',
-# }
 styles = {
     'tcp': (0,0),
     'udp': (1,1),
