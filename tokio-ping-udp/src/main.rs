@@ -109,11 +109,11 @@ async fn run(
                 // framework, transport, test, count, rate, payload, tasks, value, unit
                 println!(
                     "tokio,udp,rtt,{},{},{},{},{},ns",
-                count,
-                interval,
-                payload.len(),
-                tasks,
-                instant.elapsed().as_nanos()
+                    count,
+                    interval,
+                    payload.len(),
+                    tasks,
+                    instant.elapsed().as_nanos()
                 );
             } else {
                 println!(
@@ -145,7 +145,7 @@ fn main() {
     let args = Args::parse();
 
     let rt = Runtime::new().unwrap();
-    rt.block_on(async {
+    let handle = rt.spawn(async move {
         for _ in 0..args.spawn {
             tokio::spawn(async move {
                 let mut x: usize = 1;
@@ -179,4 +179,5 @@ fn main() {
         .await
         .unwrap();
     });
+    rt.block_on(handle).unwrap();
 }
