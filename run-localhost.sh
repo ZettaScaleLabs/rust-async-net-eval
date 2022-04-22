@@ -23,31 +23,31 @@ function ctrl_c() {
 }
 
 function std_cleanup() {
-   killall std-ping-tcp > /dev/null 2>&1
-   killall std-pong-tcp > /dev/null 2>&1
-   killall std-ping-udp > /dev/null 2>&1
-   killall std-pong-udp > /dev/null 2>&1
+   sudo killall std-ping-tcp > /dev/null 2>&1
+   sudo killall std-pong-tcp > /dev/null 2>&1
+   sudo killall std-ping-udp > /dev/null 2>&1
+   sudo killall std-pong-udp > /dev/null 2>&1
 }
 
 function async_std_cleanup() {
-   killall async-ping-tcp > /dev/null 2>&1
-   killall async-pong-tcp > /dev/null 2>&1
-   killall async-ping-udp > /dev/null 2>&1
-   killall async-pong-udp > /dev/null 2>&1
+   sudo killall async-ping-tcp > /dev/null 2>&1
+   sudo killall async-pong-tcp > /dev/null 2>&1
+   sudo killall async-ping-udp > /dev/null 2>&1
+   sudo killall async-pong-udp > /dev/null 2>&1
 }
 
 function tokio_cleanup() {
-   killall tokio-ping-tcp > /dev/null 2>&1
-   killall tokio-pong-tcp > /dev/null 2>&1
-   killall tokio-ping-udp > /dev/null 2>&1
-   killall tokio-pong-udp > /dev/null 2>&1
+   sudo killall tokio-ping-tcp > /dev/null 2>&1
+   sudo killall tokio-pong-tcp > /dev/null 2>&1
+   sudo killall tokio-ping-udp > /dev/null 2>&1
+   sudo killall tokio-pong-udp > /dev/null 2>&1
 }
 
 function smol_cleanup() {
-   killall smol-ping-tcp > /dev/null 2>&1
-   killall smol-pong-tcp > /dev/null 2>&1
-   killall smol-ping-udp > /dev/null 2>&1
-   killall smol-pong-udp > /dev/null 2>&1
+   sudo killall smol-ping-tcp > /dev/null 2>&1
+   sudo killall smol-pong-tcp > /dev/null 2>&1
+   sudo killall smol-ping-udp > /dev/null 2>&1
+   sudo killall smol-pong-udp > /dev/null 2>&1
 }
 
 # kills all the processes
