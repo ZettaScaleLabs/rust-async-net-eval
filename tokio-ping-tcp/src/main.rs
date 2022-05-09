@@ -1,6 +1,8 @@
 use clap::Parser;
 use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering::*;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::io::AsyncReadExt;
@@ -9,6 +11,7 @@ use tokio::net::TcpStream;
 use tokio::runtime::Runtime;
 use tokio::sync::Mutex;
 use tokio::time;
+const MAX_SAMPLES: usize = 100_000_000;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -21,6 +24,8 @@ struct Args {
     spawn: usize,
     #[clap(short, long)]
     csv: bool,
+    #[clap(short, long, default_value = "60")]
+    duration: u64,
 }
 
 async fn run_wait(
@@ -29,22 +34,30 @@ async fn run_wait(
     interval: f64,
     csv: bool,
     tasks: usize,
+    flag: Arc<AtomicBool>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut stream = TcpStream::connect(address).await?;
     stream.set_nodelay(true)?;
     let mut count: u64 = 0;
     let mut payload = vec![0u8; size];
-
-    loop {
+    let mut samples = Vec::with_capacity(MAX_SAMPLES);
+    while flag.load(Relaxed) {
         let count_bytes: [u8; 8] = count.to_le_bytes();
         payload[0..8].copy_from_slice(&count_bytes);
         let now = Instant::now();
 
         stream.write_all(&payload).await.unwrap();
         stream.read_exact(&mut payload).await.unwrap();
-
         let elapsed = now.elapsed();
+        samples.push(elapsed);
 
+        time::sleep(Duration::from_secs_f64(interval)).await;
+        count = count.wrapping_add(1);
+    }
+
+    stream.shutdown().await.unwrap();
+
+    for s in samples {
         if csv {
             // framework, transport, test, count, rate, payload, tasks, value, unit
             println!(
@@ -53,17 +66,13 @@ async fn run_wait(
                 interval,
                 payload.len(),
                 tasks,
-                elapsed.as_nanos()
+                s.as_nanos()
             );
         } else {
-            println!("{} bytes: seq={} time={:?}", payload.len(), count, elapsed);
+            println!("{} bytes: seq={} time={:?}", payload.len(), count, s);
         }
-
-        tokio::io::stdout().flush().await.unwrap();
-
-        time::sleep(Duration::from_secs_f64(interval)).await;
-        count = count.wrapping_add(1);
     }
+    Ok(())
 }
 
 async fn run(
@@ -130,6 +139,8 @@ async fn run(
 fn main() {
     let args = Args::parse();
 
+    let flag = Arc::new(AtomicBool::new(true));
+
     let rt = Runtime::new().unwrap();
     let handle = rt.spawn(async move {
         for _ in 0..args.spawn {
@@ -146,10 +157,25 @@ fn main() {
             run(args.address, args.size, args.interval, args.csv, args.spawn)
                 .await
                 .unwrap();
-        }
-        run_wait(args.address, args.size, args.interval, args.csv, args.spawn)
+        } else {
+            let c_duration = args.duration.clone();
+            let c_flag = flag.clone();
+            tokio::spawn(async move {
+                time::sleep(Duration::from_secs(c_duration)).await;
+                c_flag.store(false, Relaxed);
+            });
+
+            run_wait(
+                args.address,
+                args.size,
+                args.interval,
+                args.csv,
+                args.spawn,
+                flag,
+            )
             .await
             .unwrap();
+        }
     });
     rt.block_on(handle).unwrap();
 }

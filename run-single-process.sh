@@ -122,7 +122,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/std-ping-tcp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running std ping tcp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$STD_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo nice -n $NICE taskset -c $CPUS $BIN_DIR/$STD_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS -d $DURATION >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running std ping tcp"
          ;;
       2)
@@ -134,7 +134,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/std-ping-udp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running std ping udp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$STD_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo  nice -n $NICE taskset -c $CPUS $BIN_DIR/$STD_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running std ping udp"
          ;;
       4)
@@ -155,7 +155,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/async_std-ping-tcp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running async_std ping tcp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$ASYNC_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo  nice -n $NICE taskset -c $CPUS $BIN_DIR/$ASYNC_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS -d $DURATION >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running async_std ping tcp"
          ;;
       2)
@@ -167,7 +167,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/async_std-ping-udp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running async_std ping udp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$ASYNC_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo  nice -n $NICE taskset -c $CPUS $BIN_DIR/$ASYNC_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS -d $DURATION >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running async_std ping udp"
          ;;
       4)
@@ -188,7 +188,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/tokio-ping-tcp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running tokio ping tcp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$TOKIO_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo  nice -n $NICE taskset -c $CPUS $BIN_DIR/$TOKIO_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS -d $DURATION >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running tokio ping tcp"
          ;;
       2)
@@ -200,7 +200,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/tokio-ping-udp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running tokio ping udp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$TOKIO_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo  nice -n $NICE taskset -c $CPUS $BIN_DIR/$TOKIO_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS -d $DURATION >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running tokio ping udp"
          ;;
       4)
@@ -220,7 +220,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/smol-ping-tcp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running smol ping tcp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$SMOL_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo  nice -n $NICE taskset -c $CPUS $BIN_DIR/$SMOL_PING_TCP $REMOTE $SIZE $INTERVAL -w -c -s $TASKS -d $DURATION >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running smol ping tcp"
          ;;
       2)
@@ -232,7 +232,7 @@ while getopts "iIoOsSathP" arg; do
          LOG_FILE="$OUT_DIR/smol-ping-udp-$TS-$TASKS-$SIZE-$INTERVAL.csv"
          echo "framework,transport,test,count,rate,payload,tasks,value,unit" > $LOG_FILE
          plog "[ RUN ] Running smol ping udp"
-         sudo timeout $DURATION nice -n $NICE taskset -c $CPUS $BIN_DIR/$SMOL_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS >> $LOG_FILE 2> /dev/null
+         sudo  nice -n $NICE taskset -c $CPUS $BIN_DIR/$SMOL_PING_UDP $LOCAL $REMOTE $SIZE $INTERVAL -w -c -s $TASKS -d $DURATION >> $LOG_FILE 2> /dev/null
          plog "[ DONE ] Running smol ping udp"
          ;;
       4)
